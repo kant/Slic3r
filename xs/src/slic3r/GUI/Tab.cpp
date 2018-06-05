@@ -1,4 +1,4 @@
-#include "../../libslic3r/GCodeSender.hpp"
+#include "slic3r/Utils/GCodeSender.hpp"
 #include "Tab.hpp"
 #include "PresetBundle.hpp"
 #include "PresetHints.hpp"

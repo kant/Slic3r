@@ -110,8 +110,6 @@ add_library(libslic3r STATIC
     ${LIBDIR}/libslic3r/GCode.hpp
     ${LIBDIR}/libslic3r/GCodeReader.cpp
     ${LIBDIR}/libslic3r/GCodeReader.hpp
-    ${LIBDIR}/libslic3r/GCodeSender.cpp
-    ${LIBDIR}/libslic3r/GCodeSender.hpp
     ${LIBDIR}/libslic3r/GCodeTimeEstimator.cpp
     ${LIBDIR}/libslic3r/GCodeTimeEstimator.hpp
     ${LIBDIR}/libslic3r/GCodeWriter.cpp
@@ -222,6 +220,8 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/Utils/ASCIIFolding.hpp
     ${LIBDIR}/slic3r/Utils/Serial.cpp
     ${LIBDIR}/slic3r/Utils/Serial.hpp
+    ${LIBDIR}/slic3r/Utils/GCodeSender.cpp
+    ${LIBDIR}/slic3r/Utils/GCodeSender.hpp
     ${LIBDIR}/slic3r/GUI/ConfigWizard.cpp
     ${LIBDIR}/slic3r/GUI/ConfigWizard.hpp
     ${LIBDIR}/slic3r/GUI/MsgDialog.cpp

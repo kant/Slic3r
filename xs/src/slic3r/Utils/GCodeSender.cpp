@@ -2,42 +2,11 @@
 #include <iostream>
 #include <istream>
 #include <string>
+#include <stdexcept>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/lexical_cast.hpp>
-
-#if defined(__APPLE__) || defined(__OpenBSD__)
-#include <termios.h>
-#endif
-#ifdef __APPLE__
-#include <sys/ioctl.h>
-#include <IOKit/serial/ioss.h>
-#endif
-#ifdef __linux__
-#include <sys/ioctl.h>
-#include <fcntl.h>
-#include "/usr/include/asm-generic/ioctls.h"
-
-/* The following definitions are kindly borrowed from:
-   /usr/include/asm-generic/termbits.h
-   Unfortunately we cannot just include that one because
-   it would redefine the "struct termios" already defined
-   the <termios.h> already included by Boost.ASIO. */
-#define K_NCCS 19
-struct termios2 {
-	tcflag_t c_iflag;
-	tcflag_t c_oflag;
-	tcflag_t c_cflag;
-	tcflag_t c_lflag;
-	cc_t c_line;
-	cc_t c_cc[K_NCCS];
-	speed_t c_ispeed;
-	speed_t c_ospeed;
-};
-#define BOTHER CBAUDEX
-
-#endif
 
 //#define DEBUG_SERIAL
 #ifdef DEBUG_SERIAL
@@ -77,17 +46,17 @@ GCodeSender::connect(std::string devname, unsigned int baud_rate)
         this->serial.set_option(boost::asio::serial_port_base::character_size(boost::asio::serial_port_base::character_size(8)));
         this->serial.set_option(boost::asio::serial_port_base::flow_control(boost::asio::serial_port_base::flow_control::none));
         this->serial.set_option(boost::asio::serial_port_base::stop_bits(boost::asio::serial_port_base::stop_bits::one));
-        this->set_baud_rate(baud_rate);
+        this->serial.set_baud_rate(baud_rate);
     
         this->serial.close();
         this->serial.open(devname);
         this->serial.set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::none));
     
         // set baud rate again because set_option overwrote it
-        this->set_baud_rate(baud_rate);
+        this->serial.set_baud_rate(baud_rate);
         this->open = true;
         this->reset();
-    } catch (boost::system::system_error &) {
+    } catch (std::runtime_error &) {
         this->set_error_status(true);
         return false;
     }
@@ -118,46 +87,6 @@ GCodeSender::connect(std::string devname, unsigned int baud_rate)
 }
 
 void
-GCodeSender::set_baud_rate(unsigned int baud_rate)
-{
-    try {
-        // This does not support speeds > 115200
-        this->serial.set_option(boost::asio::serial_port_base::baud_rate(baud_rate));
-    } catch (boost::system::system_error &) {
-        boost::asio::serial_port::native_handle_type handle = this->serial.native_handle();
-
-#if __APPLE__
-        termios ios;
-        ::tcgetattr(handle, &ios);
-        ::cfsetspeed(&ios, baud_rate);
-        speed_t newSpeed = baud_rate;
-        ioctl(handle, IOSSIOSPEED, &newSpeed);
-        ::tcsetattr(handle, TCSANOW, &ios);
-#elif __linux
-        termios2 ios;
-        if (ioctl(handle, TCGETS2, &ios))
-            printf("Error in TCGETS2: %s\n", strerror(errno));
-        ios.c_ispeed = ios.c_ospeed = baud_rate;
-        ios.c_cflag &= ~CBAUD;
-        ios.c_cflag |= BOTHER | CLOCAL | CREAD;
-        ios.c_cc[VMIN] = 1; // Minimum of characters to read, prevents eof errors when 0 bytes are read
-        ios.c_cc[VTIME] = 1;
-        if (ioctl(handle, TCSETS2, &ios))
-            printf("Error in TCSETS2: %s\n", strerror(errno));
-		
-#elif __OpenBSD__
-		struct termios ios;
-		::tcgetattr(handle, &ios);
-		::cfsetspeed(&ios, baud_rate);
-		if (::tcsetattr(handle, TCSAFLUSH, &ios) != 0)
-			printf("Failed to set baud rate: %s\n", strerror(errno));
-#else
-        //throw invalid_argument ("OS does not currently support custom bauds");
-#endif
-    }
-}
-
-void
 GCodeSender::disconnect()
 {
     if (!this->open) return;
@@ -166,6 +95,7 @@ GCodeSender::disconnect()
     this->io.post(boost::bind(&GCodeSender::do_close, this));
     this->background_thread.join();
     this->io.reset();
+
     /*
     if (this->error_status()) {
         throw(boost::system::system_error(boost::system::error_code(),
@@ -497,17 +427,7 @@ GCodeSender::do_send()
     // In DEBUG_SERIAL mode, test line re-synchronization by sending bad line number 1/4 of the time
     const auto line_num = std::rand() < RAND_MAX/4 ? 0 : this->sent;
 #endif
-    std::string full_line = "N" + boost::lexical_cast<std::string>(line_num) + " " + line;
-    
-    // calculate checksum
-    int cs = 0;
-    for (std::string::const_iterator it = full_line.begin(); it != full_line.end(); ++it)
-       cs = cs ^ *it;
-    
-    // write line to device
-    full_line += "*";
-    full_line += boost::lexical_cast<std::string>(cs);
-    full_line += "\n";
+    const auto full_line = Utils::Serial::printer_format_line(line, this->sent);
     
 #ifdef DEBUG_SERIAL
     fs << ">> " << full_line << std::flush;
@@ -545,34 +465,13 @@ GCodeSender::on_write(const boost::system::error_code& error,
 }
 
 void
-GCodeSender::set_DTR(bool on)
-{
-#if defined(_WIN32) && !defined(__SYMBIAN32__)
-    boost::asio::serial_port_service::native_handle_type handle = this->serial.native_handle();
-    if (on)
-        EscapeCommFunction(handle, SETDTR);
-    else
-        EscapeCommFunction(handle, CLRDTR);
-#else
-    int fd = this->serial.native_handle();
-    int status;
-    ioctl(fd, TIOCMGET, &status);
-    if (on)
-        status |= TIOCM_DTR;
-    else
-        status &= ~TIOCM_DTR;
-    ioctl(fd, TIOCMSET, &status);
-#endif
-}
-
-void
 GCodeSender::reset()
 {
-    this->set_DTR(false);
+    this->serial.set_DTR(false);
     boost::this_thread::sleep(boost::posix_time::milliseconds(200));
-    this->set_DTR(true);
+    this->serial.set_DTR(true);
     boost::this_thread::sleep(boost::posix_time::milliseconds(200));
-    this->set_DTR(false);
+    this->serial.set_DTR(false);
     boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
     {
         boost::lock_guard<boost::mutex> l(this->queue_mutex);

@@ -2,7 +2,7 @@
 
 %{
 #include <xsinit.h>
-#include "libslic3r/GCodeSender.hpp"
+#include "slic3r/Utils/GCodeSender.hpp"
 %}
 
 %name{Slic3r::GCode::Sender} class GCodeSender {

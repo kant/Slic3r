@@ -9,6 +9,9 @@
 #include <boost/bind.hpp>
 #include <boost/thread.hpp>
 
+#include "Serial.hpp"
+
+
 namespace Slic3r {
 
 namespace asio = boost::asio;
@@ -31,12 +34,11 @@ class GCodeSender : private boost::noncopyable {
     std::vector<std::string> purge_log();
     std::string getT() const;
     std::string getB() const;
-    void set_DTR(bool on);
     void reset();
     
     private:
     asio::io_service io;
-    asio::serial_port serial;
+    Utils::Serial serial;
     boost::thread background_thread;
     boost::asio::streambuf read_buffer, write_buffer;
     bool open;      // whether the serial socket is connected
@@ -58,7 +60,6 @@ class GCodeSender : private boost::noncopyable {
     std::queue<std::string> log;
     std::string T, B;
     
-    void set_baud_rate(unsigned int baud_rate);
     void set_error_status(bool e);
     void do_send();
     void on_write(const boost::system::error_code& error, size_t bytes_transferred);
