@@ -1,4 +1,4 @@
-#include <algorithm>
+﻿#include <algorithm>
 #include <sstream>
 #include "WipeTowerDialog.hpp"
 
@@ -81,7 +81,7 @@ RammingPanel::RammingPanel(wxWindow* parent, const std::string& parameters)
 	auto gsizer_param = new wxFlexGridSizer(2, 5, 15);
 	gsizer_param->Add(new wxStaticText(this, wxID_ANY, wxString(_(L("Total ramming time")) + " (" + _(L("s")) + "):")), 0, wxALIGN_CENTER_VERTICAL);
 	gsizer_param->Add(m_widget_time);
-	gsizer_param->Add(new wxStaticText(this, wxID_ANY, wxString(_(L("Total rammed volume")) + " (" + _(L("mm")) + "\u00B3):")), 0, wxALIGN_CENTER_VERTICAL);
+	gsizer_param->Add(new wxStaticText(this, wxID_ANY, wxString(_(L("Total rammed volume")) + " (" + _(L("mm")) + "³):")), 0, wxALIGN_CENTER_VERTICAL);
 	gsizer_param->Add(m_widget_volume);
 	gsizer_param->AddSpacer(20);
 	gsizer_param->AddSpacer(20);
@@ -220,7 +220,7 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
 
 	// collect and format sizer
 	format_sizer(m_sizer_advanced, m_page_advanced, m_gridsizer_advanced,
-		wxString::Format(_(L("Here you can adjust required purging volume (mm%s) for any given pair of tools.")), "\u00B3"),
+		_(L("Here you can adjust required purging volume (mm³) for any given pair of tools.")),
 		_(L("Extruder changed to")));
 
 	// Hide preview page before new page creating 
@@ -243,7 +243,7 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
 	// collect and format sizer
 	format_sizer(m_sizer_simple, m_page_simple, gridsizer_simple,
 		_(L("Total purging volume is calculated by summing two values below, depending on which tools are loaded/unloaded.")),
-		wxString::Format(_(L("Volume to purge (mm%s) when the filament is being")), "\u00B3"), 50);
+		_(L("Volume to purge (mm³) when the filament is being")), 50);
 
 	m_sizer = new wxBoxSizer(wxVERTICAL);
 	m_sizer->Add(m_page_simple, 0, wxEXPAND | wxALL, 25);
