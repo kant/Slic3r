@@ -315,12 +315,12 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
 
     const auto config_wizard_tooltip = wxString::Format(_(L("Run %s")), ConfigWizard::name());
     // Cmd+, is standard on OS X - what about other operating systems?
-   	local_menu->Append(config_id_base + ConfigMenuWizard, 		ConfigWizard::name() + "…", 			config_wizard_tooltip);
-   	local_menu->Append(config_id_base + ConfigMenuSnapshots, 	_(L("Configuration Snapshots"))+"…",	_(L("Inspect / activate configuration snapshots")));
+   	local_menu->Append(config_id_base + ConfigMenuWizard, 		ConfigWizard::name() + L"…", 			config_wizard_tooltip);
+   	local_menu->Append(config_id_base + ConfigMenuSnapshots, 	_(L("Configuration Snapshots"))+L"…",	_(L("Inspect / activate configuration snapshots")));
    	local_menu->Append(config_id_base + ConfigMenuTakeSnapshot, _(L("Take Configuration Snapshot")), 		_(L("Capture a configuration snapshot")));
 // 	local_menu->Append(config_id_base + ConfigMenuUpdate, 		_(L("Check for updates")), 					_(L("Check for configuration updates")));
    	local_menu->AppendSeparator();
-   	local_menu->Append(config_id_base + ConfigMenuPreferences, 	_(L("Preferences"))+"…\tCtrl+,", 		_(L("Application preferences")));
+   	local_menu->Append(config_id_base + ConfigMenuPreferences, 	_(L("Preferences"))+L"…\tCtrl+,", 		_(L("Application preferences")));
    	local_menu->Append(config_id_base + ConfigMenuLanguage, 	_(L("Change Application Language")));
    	local_menu->AppendSeparator();
 	local_menu->Append(config_id_base + ConfigMenuFlashFirmware, _(L("Flash printer firmware")), _(L("Upload a firmware image into an Arduino based printer")));
@@ -621,7 +621,7 @@ void show_info(wxWindow* parent, const wxString& message, const wxString& title)
 }
 
 void warning_catcher(wxWindow* parent, const wxString& message){
-	if (message == "GLUquadricObjPtr | " + _(L("Attempt to free unreferenced scalar")) )
+	if (message == "GLUquadricObjPtr | Attempt to free unreferenced scalar")
 		return;
 	wxMessageDialog msg(parent, message, _(L("Warning")), wxOK | wxICON_WARNING);
 	msg.ShowModal();
@@ -841,7 +841,7 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 
     Line line = { "", "" };
         line.widget = [config](wxWindow* parent){
-			g_wiping_dialog_button = new wxButton(parent, wxID_ANY, _(L("Purging volumes")) + "…", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+			g_wiping_dialog_button = new wxButton(parent, wxID_ANY, _(L("Purging volumes")) + L"…", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(g_wiping_dialog_button);
 			g_wiping_dialog_button->Bind(wxEVT_BUTTON, ([parent](wxCommandEvent& e)

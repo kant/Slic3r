@@ -479,11 +479,11 @@ PageTemperatures::PageTemperatures(ConfigWizard *parent) :
 	spin_bed->SetValue(default_bed != nullptr && default_bed->size() > 0 ? default_bed->get_at(0) : 0);
 
 	append_text(_(L("Enter the temperature needed for extruding your filament.")));
-	append_text(_(L("A rule of thumb is 160 to 230 °C for PLA, and 215 to 250 °C for ABS.")));
+	append_text(_(L(L"A rule of thumb is 160 to 230 °C for PLA, and 215 to 250 °C for ABS.")));
 
 	auto *sizer_extr = new wxFlexGridSizer(3, 5, 5);
 	auto *text_extr = new wxStaticText(this, wxID_ANY, _(L("Extrusion Temperature:")));
-	auto *unit_extr = new wxStaticText(this, wxID_ANY, _(L("°C")));
+	auto *unit_extr = new wxStaticText(this, wxID_ANY, _(L(L"°C")));
 	sizer_extr->AddGrowableCol(0, 1);
 	sizer_extr->Add(text_extr, 0, wxALIGN_CENTRE_VERTICAL);
 	sizer_extr->Add(spin_extr);
@@ -493,11 +493,11 @@ PageTemperatures::PageTemperatures(ConfigWizard *parent) :
 	append_spacer(VERTICAL_SPACING);
 
 	append_text(_(L("Enter the bed temperature needed for getting your filament to stick to your heated bed.")));
-	append_text(_(L("A rule of thumb is 60 °C for PLA and 110 °C for ABS. Leave zero if you have no heated bed.")));
+	append_text(_(L(L"A rule of thumb is 60 °C for PLA and 110 °C for ABS. Leave zero if you have no heated bed.")));
 
 	auto *sizer_bed = new wxFlexGridSizer(3, 5, 5);
 	auto *text_bed = new wxStaticText(this, wxID_ANY, _(L("Bed Temperature:")));
-	auto *unit_bed = new wxStaticText(this, wxID_ANY, _(L("°C")));
+	auto *unit_bed = new wxStaticText(this, wxID_ANY, _(L(L"°C")));
 	sizer_bed->AddGrowableCol(0, 1);
 	sizer_bed->Add(text_bed, 0, wxALIGN_CENTRE_VERTICAL);
 	sizer_bed->Add(spin_bed);
