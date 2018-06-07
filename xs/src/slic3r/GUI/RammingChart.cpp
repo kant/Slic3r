@@ -1,4 +1,4 @@
-#include <algorithm>
+﻿#include <algorithm>
 #include <wx/dcbuffer.h>
 
 #include "RammingChart.hpp"
@@ -83,7 +83,7 @@ void Chart::draw() {
     int text_height = 0;
     dc.GetTextExtent(label,&text_width,&text_height);
     dc.DrawText(label,wxPoint(0.5*(m_rect.GetRight()+m_rect.GetLeft())-text_width/2.f, m_rect.GetBottom()+25));
-    label = _(L("Volumetric speed")) + " (" + _(L("mm")) + "\u00B3/" + _(L("s")) + ")";
+    label = _(L("Volumetric speed")) + " (" + _(L("mm")) + "³/" + _(L("s")) + ")";
     dc.GetTextExtent(label,&text_width,&text_height);
     dc.DrawRotatedText(label,wxPoint(0,0.5*(m_rect.GetBottom()+m_rect.GetTop())+text_width/2.f),90);
 }
