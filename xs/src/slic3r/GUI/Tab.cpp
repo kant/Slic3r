@@ -618,10 +618,9 @@ void Tab::load_config(const DynamicPrintConfig& config)
 
 // Reload current $self->{config} (aka $self->{presets}->edited_preset->config) into the UI fields.
 void Tab::reload_config(){
-	Freeze();
+	wxWindowUpdateLocker no_updates(this);
 	for (auto page : m_pages)
 		page->reload_config();
- 	Thaw();
 }
 
 Field* Tab::get_field(const t_config_option_key& opt_key, int opt_index/* = -1*/) const
@@ -1034,7 +1033,7 @@ void TabPrint::reload_config(){
 
 void TabPrint::update()
 {
-	Freeze();
+	wxWindowUpdateLocker no_updates(this);
 
 	double fill_density = m_config->option<ConfigOptionPercent>("fill_density")->value;
 
@@ -1240,8 +1239,6 @@ void TabPrint::update()
 
 	m_recommended_thin_wall_thickness_description_line->SetText(
 		from_u8(PresetHints::recommended_thin_wall_thickness(*m_preset_bundle)));
-
-	Thaw();
 }
 
 void TabPrint::OnActivate()
@@ -1385,7 +1382,7 @@ void TabFilament::reload_config(){
 
 void TabFilament::update()
 {
-	Freeze();
+	wxWindowUpdateLocker no_updates(this);
 	wxString text = from_u8(PresetHints::cooling_description(m_presets->get_edited_preset()));
 	m_cooling_description_line->SetText(text);
 	text = from_u8(PresetHints::maximum_volumetric_flow_description(*m_preset_bundle));
@@ -1399,7 +1396,6 @@ void TabFilament::update()
 
 	for (auto el : { "min_fan_speed", "disable_fan_first_layers" })
 		get_field(el)->toggle(fan_always_on);
-	Thaw();
 }
 
 void TabFilament::OnActivate()
@@ -1799,7 +1795,7 @@ void TabPrinter::on_preset_loaded()
 }
 
 void TabPrinter::update(){
-	Freeze();
+	wxWindowUpdateLocker no_updates(this);
 
 	bool en;
 	auto serial_speed = get_field("serial_speed");
@@ -1875,8 +1871,6 @@ void TabPrinter::update(){
 		get_field("retract_restart_extra_toolchange", i)->toggle
 			(have_multiple_extruders && toolchange_retraction);
 	}
-
-	Thaw();
 }
 
 // Initialize the UI from the current preset
@@ -1922,7 +1916,7 @@ void Tab::load_current_preset()
 //Regerenerate content of the page tree.
 void Tab::rebuild_page_tree()
 {
-	Freeze();
+	wxWindowUpdateLocker no_updates(this);
 	// get label of the currently selected item
 	auto selected = m_treectrl->GetItemText(m_treectrl->GetSelection());
 	auto rootItem = m_treectrl->GetRootItem();
@@ -1945,7 +1939,6 @@ void Tab::rebuild_page_tree()
 		// this is triggered on first load, so we don't disable the sel change event
 		m_treectrl->SelectItem(m_treectrl->GetFirstVisibleItem());//! (treectrl->GetFirstChild(rootItem));
 	}
-	Thaw();
 }
 
 // Called by the UI combo box when the user switches profiles.
@@ -2056,7 +2049,7 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
 void Tab::OnTreeSelChange(wxTreeEvent& event)
 {
 	if (m_disable_tree_sel_changed_event) return;
-	wxWindowUpdateLocker noUpdates(this);
+	std::unique_ptr<wxWindowUpdateLocker> no_updates(new wxWindowUpdateLocker(this));
 
 	Page* page = nullptr;
 	auto selection = m_treectrl->GetItemText(m_treectrl->GetSelection());
@@ -2072,6 +2065,14 @@ void Tab::OnTreeSelChange(wxTreeEvent& event)
 
 	for (auto& el : m_pages)
 		el.get()->Hide();
+
+// There is a bug related to Ubuntu overlay scrollbars, see https://github.com/prusa3d/Slic3r/issues/898 and https://github.com/prusa3d/Slic3r/issues/952.
+// The issue apparently manifests when Show()ing a window with overlay scrollbars while the UI is frozen. For this reason,
+// we will Thaw the UI prematurely on Linux. This means destroing the no_updates object prematurely.
+#ifdef __linux__
+    delete no_updates.release();
+#endif
+
 	page->Show();
 	m_hsizer->Layout();
 	Refresh();
@@ -2281,7 +2282,7 @@ void Tab::update_presetsctrl(wxDataViewTreeCtrl* ui, bool show_incompatible)
 {
 	if (ui == nullptr)
 		return;
-	ui->Freeze();
+	wxWindowUpdateLocker no_update(this);
 	ui->DeleteAllItems();
 	auto presets = m_presets->get_presets();
 	auto idx_selected = m_presets->get_idx_selected();
@@ -2355,14 +2356,13 @@ void Tab::update_presetsctrl(wxDataViewTreeCtrl* ui, bool show_incompatible)
 	if (ui->GetStore()->GetChildCount(root_def) == 0)
 		ui->DeleteItem(root_def);
 
-	ui->Thaw();
 }
 
 void Tab::update_tab_presets(wxComboCtrl* ui, bool show_incompatible)
 {
 	if (ui == nullptr)
 		return;
-	ui->Freeze();
+	wxWindowUpdateLocker no_updates(this);
 	ui->Clear();
 	auto presets = m_presets->get_presets();
 	auto idx_selected = m_presets->get_idx_selected();
@@ -2441,7 +2441,6 @@ void Tab::update_tab_presets(wxComboCtrl* ui, bool show_incompatible)
 		if (popup->GetStore()->GetChildCount(root_def) == 0)
 			popup->DeleteItem(root_def);
 	}
-	ui->Thaw();
 }
 
 void Tab::fill_icon_descriptions()

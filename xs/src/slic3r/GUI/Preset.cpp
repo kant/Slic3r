@@ -599,7 +599,7 @@ void PresetCollection::update_platter_ui(wxBitmapComboBox *ui)
     if (ui == nullptr)
         return;
     // Otherwise fill in the list from scratch.
-    ui->Freeze();
+    wxWindowUpdateLocker no_updates(ui);
     ui->Clear();
 
 	const Preset &selected_preset = this->get_selected_preset();
@@ -661,14 +661,13 @@ void PresetCollection::update_platter_ui(wxBitmapComboBox *ui)
 				ui->SetSelection(ui->GetCount() - 1);
 		}
 	}
-    ui->Thaw();
 }
 
 size_t PresetCollection::update_tab_ui(wxBitmapComboBox *ui, bool show_incompatible)
 {
     if (ui == nullptr)
         return 0;
-    ui->Freeze();
+    wxWindowUpdateLocker no_updates(ui);
     ui->Clear();
 	size_t selected_preset_item = 0;
 
@@ -719,7 +718,6 @@ size_t PresetCollection::update_tab_ui(wxBitmapComboBox *ui, bool show_incompati
 		}
 	}
 	ui->SetSelection(selected_preset_item);
-    ui->Thaw();
 	return selected_preset_item;
 }
 

@@ -1106,7 +1106,7 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, wxBitma
         extruder_color.clear();
 
     // Fill in the list from scratch.
-    ui->Freeze();
+    wxWindowUpdateLocker no_updates(ui);
     ui->Clear();
     const Preset *selected_preset = this->filaments.find_preset(this->filament_presets[idx_extruder]);
     // Show wide icons if the currently selected preset is not compatible with the current printer,
@@ -1181,7 +1181,6 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, wxBitma
 				ui->SetSelection(ui->GetCount() - 1);
 		}
 	}
-    ui->Thaw();
 }
 
 void PresetBundle::set_default_suppressed(bool default_suppressed)
